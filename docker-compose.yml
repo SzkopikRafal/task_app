@@ -1,0 +1,38 @@
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    container_name: task_server
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    container_name: task_client
+    depends_on:
+      - server
+    stdin_open: true
+    tty: true
+
+  notifier:
+    build:
+      context: .
+      dockerfile: Dockerfile.notifier
+    container_name: task_notifier
+    environment:
+      - SMTP_USER=your_email@gmail.com
+      - SMTP_PASS=your_app_password
+    command: ["python", "-u", "notifier.py"]
+    depends_on:
+      - mongodb
